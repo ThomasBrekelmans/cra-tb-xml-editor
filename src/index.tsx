@@ -1,14 +1,31 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import { Global, css } from '@emotion/react';
+import createCache from '@emotion/cache';
+import { CacheProvider, Global, css } from '@emotion/react';
 
 import App from './App';
+import { app } from './model/App';
+import AppContext from './model/AppContext';
 import reportWebVitals from './reportWebVitals';
 
+const emotionCache = createCache({
+	key: 'css',
+	// get rid of the prefixer (otherwise you get -webkit-flex etc.)
+	stylisPlugins: []
+});
+
 const styles = css`
+	html {
+		font-size: 16px;
+	}
+
 	body {
 		margin: 0;
+		padding: 0;
+		width: 100vw;
+		height: 100vh;
+		background-color: #282c34;
 		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
 			'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans',
 			'Helvetica Neue', sans-serif;
@@ -16,17 +33,23 @@ const styles = css`
 		-moz-osx-font-smoothing: grayscale;
 	}
 
-	code {
-		font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-			monospace;
+	#root {
+		width: 100vw;
+		height: 100vh;
+		display: flex;
+		flex-direction: column;
 	}
 `;
 
 ReactDOM.render(
 	<React.StrictMode>
-		<Global styles={styles} />
+		<CacheProvider value={emotionCache}>
+			<AppContext.Provider value={app}>
+				<Global styles={styles} />
 
-		<App />
+				<App />
+			</AppContext.Provider>
+		</CacheProvider>
 	</React.StrictMode>,
 	document.getElementById('root')
 );

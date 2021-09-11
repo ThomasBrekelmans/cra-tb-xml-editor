@@ -1,66 +1,44 @@
 /** @jsxImportSource @emotion/react */
 
+import { useContext, useEffect, useState } from 'react';
+import { Element } from 'slimdom';
+
 import { css } from '@emotion/react';
-import styled from '@emotion/styled';
 
-import logo from './logo.svg';
+import AppHeader from './AppHeader';
+import AppContext from './model/AppContext';
+import DocumentElementRenderer from './xml-renderer/DocumentElementRenderer';
 
-const AppHeader = styled.header`
-	background-color: #282c34;
-	min-height: 100vh;
+const styles = css`
+	flex: 1;
+	padding: 1rem;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	justify-content: center;
-	font-size: calc(10px + 2vmin);
-	color: white;
-
-	a {
-		color: #61dafb;
-	}
-`;
-
-const AppLogo = styled.img`
-	height: 40vmin;
-	pointer-events: none;
-
-	@keyframes App-logo-spin {
-		from {
-			transform: rotate(0deg);
-		}
-
-		to {
-			transform: rotate(360deg);
-		}
-	}
-
-	@media (prefers-reduced-motion: no-preference) {
-		animation: App-logo-spin infinite 20s linear;
-	}
 `;
 
 function App() {
+	const app = useContext(AppContext);
+	console.log('App app.id', app.id);
+	console.log('App app.something', app.something);
+
+	const [documentElement, setDocumentElement] = useState<Element | null>(
+		null
+	);
+
+	useEffect(() => {
+		app.parseXml().then(documentElement =>
+			setDocumentElement(documentElement)
+		);
+	}, [app]);
+
 	return (
-		<div
-			css={css`
-				text-align: center;
-			`}
-		>
-			<AppHeader>
-				<AppLogo src={logo} alt="logo" />
+		<div css={styles}>
+			<AppHeader />
 
-				<p>
-					Edit <code>src/App.tsx</code> and save to reload.
-				</p>
-
-				<a
-					href="https://reactjs.org"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					Learn React
-				</a>
-			</AppHeader>
+			{documentElement && (
+				<DocumentElementRenderer documentElement={documentElement} />
+			)}
 		</div>
 	);
 }
