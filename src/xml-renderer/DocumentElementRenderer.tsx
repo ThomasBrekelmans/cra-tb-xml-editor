@@ -1,30 +1,34 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Element, MutationObserver, MutationRecord } from 'slimdom';
 
+import AppContext from '../model/AppContext';
 import getNodeId from '../model/getNodeId';
 import ElementRenderer from './ElementRenderer';
 
 type Props = {
 	documentElement: Element;
+	onAfterInitialRender: (initialRenderTime: number) => void;
 };
 
-const DocumentElementRenderer = ({ documentElement }: Props) => {
+const DocumentElementRenderer = ({
+	documentElement,
+	onAfterInitialRender
+}: Props) => {
+	const app = useContext(AppContext);
+
 	const nodeId = useMemo(() => getNodeId(documentElement), [documentElement]);
 
-	console.log(
-		'DocumentElementRenderer() render documentElement',
-		documentElement
-	);
+	const [children, setChildren] = useState(documentElement.children);
 
 	const handleMutation = useCallback(
 		(records: MutationRecord[], observer: MutationObserver) => {
-			//
-			console.log(
-				'DocumentElementRenderer() documentElement mutated, records',
-				records
-			);
+			// TODO: change attributes only if attributes mutation
+
+			// TODO: only if childList mutation
+			// Note: slimdom DOM is modified in place, make a new copy so React detects a change
+			setChildren(documentElement.children.slice());
 		},
-		[]
+		[documentElement]
 	);
 
 	useEffect(() => {
@@ -36,27 +40,59 @@ const DocumentElementRenderer = ({ documentElement }: Props) => {
 			characterDataOldValue: false,
 			childList: true
 		});
-		console.log(
-			'DocumentElementRenderer() observe documentElement',
-			documentElement
-		);
 
 		return () => {
 			mutationObserver.disconnect();
 		};
 	}, [documentElement, handleMutation]);
 
-	//
+	useEffect(() => {
+		performance.mark('initialRenderEnd');
+		app.initialRenderTime =
+			Math.round(
+				performance.measure(
+					'initialRenderTime',
+					'initialRenderStart',
+					'initialRenderEnd'
+				).duration * 1000
+			) / 1000;
+		onAfterInitialRender(app.initialRenderTime);
+	}, [app, onAfterInitialRender]);
+
+	const handleKeyUp = useCallback(
+		(keyboardEvent: KeyboardEvent) => {
+			console.log('keyboardEvent', keyboardEvent);
+			//
+			if (
+				(keyboardEvent.key === 'Backspace' ||
+					keyboardEvent.key === 'Delete') &&
+				app.selectionRange
+			) {
+				console.log(
+					'TODO: DELETE selected text, app.selectionRange',
+					app.selectionRange
+				);
+			}
+		},
+		[app.selectionRange]
+	);
+
+	useEffect(() => {
+		window.addEventListener('keyup', handleKeyUp);
+
+		return () => {
+			window.removeEventListener('keyup', handleKeyUp);
+		};
+	}, [handleKeyUp]);
+
+	const Template = app.getTemplateForElement(documentElement);
+
 	return (
-		<div
-			data-test-id="document-renderer"
-			data-node-id={nodeId}
-			data-element-name={documentElement.nodeName}
-		>
-			{documentElement.children.map(child => (
+		<Template element={documentElement} nodeId={nodeId}>
+			{children.map(child => (
 				<ElementRenderer key={getNodeId(child)} element={child} />
 			))}
-		</div>
+		</Template>
 	);
 };
 

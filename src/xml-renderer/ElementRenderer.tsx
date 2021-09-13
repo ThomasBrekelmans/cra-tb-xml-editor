@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Element, MutationObserver, MutationRecord, Node, Text } from 'slimdom';
 
+import AppContext from '../model/AppContext';
 import getNodeId from '../model/getNodeId';
 import TextNodeRenderer from './TextNodeRenderer';
 
@@ -9,26 +10,21 @@ type Props = {
 };
 
 const ElementRenderer = ({ element }: Props) => {
+	const app = useContext(AppContext);
+
 	const nodeId = useMemo(() => getNodeId(element), [element]);
 
 	const [childNodes, setChildNodes] = useState(element.childNodes);
 
-	console.log('ElementRenderer() render element', element, 'nodeId', nodeId);
-
 	const handleMutation = useCallback(
 		(records: MutationRecord[], observer: MutationObserver) => {
-			//
-			console.log(
-				`ElementRenderer() element (${nodeId}) mutated, records`,
-				records
-			);
-			console.log('element', element);
 			// TODO: change attributes only if attributes mutation
 
 			// TODO: only if childList mutation
+			// Note: slimdom DOM is modified in place, make a new copy so React detects a change
 			setChildNodes(element.childNodes.slice());
 		},
-		[element, nodeId]
+		[element]
 	);
 
 	useEffect(() => {
@@ -40,7 +36,6 @@ const ElementRenderer = ({ element }: Props) => {
 			characterDataOldValue: false,
 			childList: true
 		});
-		console.log(`ElementRenderer() observe element (${nodeId})`, element);
 
 		return () => {
 			mutationObserver.disconnect();
@@ -68,15 +63,13 @@ const ElementRenderer = ({ element }: Props) => {
 		}
 	}, []);
 
+	const Template = app.getTemplateForElement(element);
+
 	// TODO: render attributes + test attributes change
 	return (
-		<span
-			data-test-id="element-renderer"
-			data-node-id={nodeId}
-			data-element-name={element.nodeName}
-		>
+		<Template element={element} nodeId={nodeId}>
 			{childNodes.map(renderChild)}
-		</span>
+		</Template>
 	);
 };
 

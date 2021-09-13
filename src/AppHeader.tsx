@@ -14,6 +14,7 @@ import AppContext from './model/AppContext';
 
 const styles = css`
 	flex: none;
+	align-self: center;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -41,14 +42,12 @@ const AppLogo = styled.img`
 
 const AppHeader = () => {
 	const app = useContext(AppContext);
-	console.log('AppHeader app.id', app.id);
-	console.log('AppHeader app.something', app.something);
 
 	const handleClick = useCallback(() => {
 		console.log(`handleClick() logo`);
 
 		evaluateUpdatingExpression(
-			'replace node //p with <p>test</p>',
+			'replace node //p[1] with <p>test</p>',
 			app.xmlDocument?.documentElement
 		).then(result => {
 			console.log(

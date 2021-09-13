@@ -16,8 +16,13 @@ const emotionCache = createCache({
 });
 
 const styles = css`
+	* {
+		box-sizing: border-box;
+	}
+
 	html {
 		font-size: 16px;
+		line-height: 1;
 	}
 
 	body {
@@ -25,10 +30,13 @@ const styles = css`
 		padding: 0;
 		width: 100vw;
 		height: 100vh;
-		background-color: #282c34;
-		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
-			'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans',
-			'Helvetica Neue', sans-serif;
+		overflow-y: hidden;
+		background-color: #202124;
+
+		--text-color: #bcc0c3;
+
+		color: var(--text-color);
+		font-family: arial, sans-serif;
 		-webkit-font-smoothing: antialiased;
 		-moz-osx-font-smoothing: grayscale;
 	}
@@ -38,6 +46,7 @@ const styles = css`
 		height: 100vh;
 		display: flex;
 		flex-direction: column;
+		overflow-y: hidden;
 	}
 `;
 
